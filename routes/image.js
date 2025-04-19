@@ -9,9 +9,9 @@ const {
     downloadImage,
     listUserImages
   } = require('../controllers/image');
-  
-router.post('/images', auth, upload.single('image'), uploadImage);
-router.post('/images/:id/transform', auth, transformImageController);
+  const rateLimiter = require('../middleware/rateLimiter');
+  router.post('/images', auth, rateLimiter, upload.single('image'), uploadImage);
+  router.post('/images/:id/transform', auth, rateLimiter, transformImageController);
 module.exports = router;
 
   router.get('/images/:id', auth, getImageById);        
