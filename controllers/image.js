@@ -77,3 +77,24 @@ exports.listUserImages = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch images' });
   }
 };
+const imageQueue = require('../queues/image');
+
+exports.transformImageController = async (req, res) => {
+  try {
+    const image = await Image.findById(req.params.id);
+    if (!image || image.user.toString() !== req.user._id.toString()) {
+      return res.status(404).json({ error: 'Image not found or access denied' });
+    }
+
+    await imageQueue.add('transform', {
+      userId: req.user._id,
+      imageId: image._id,
+      path: image.path,
+      transformations: req.body.transformations,
+    });
+
+    res.status(202).json({ message: 'Transformation queued and will be processed soon.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to queue transformation' });
+  }
+};
